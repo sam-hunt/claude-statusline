@@ -1,0 +1,15 @@
+{
+  "session_id": "opus-on-pace",
+  "cwd": "/home/user/project",
+  "model": { "id": "claude-opus-5-5", "display_name": "Opus 5.5" },
+  "effort": { "level": "high" },
+  "context_window": {
+    "context_window_size": 200000,
+    "current_usage": { "input_tokens": 500, "output_tokens": 900, "cache_creation_input_tokens": 4500, "cache_read_input_tokens": 75000 }
+  },
+  "rate_limits": {
+    "five_hour": { "used_percentage": 30, "resets_in": 7200 },
+    "seven_day": { "used_percentage": 52, "resets_in": 302000 },
+    "seven_day_fable": { "used_percentage": 40, "resets_in": 302000 }
+  }
+}

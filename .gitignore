@@ -1,0 +1,3 @@
+# install/uninstall backups, if settings are ever pointed here
+*.bak.*
+.DS_Store

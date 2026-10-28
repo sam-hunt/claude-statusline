@@ -1,0 +1,14 @@
+{
+  "session_id": "fable-ahead-of-pace",
+  "cwd": "/home/user/project",
+  "model": { "id": "claude-fable-5-1", "display_name": "Fable 5.1" },
+  "effort": { "level": "xhigh" },
+  "context_window": {
+    "context_window_size": 1000000,
+    "current_usage": { "input_tokens": 2000, "output_tokens": 300, "cache_creation_input_tokens": 3000, "cache_read_input_tokens": 175000 }
+  },
+  "rate_limits": {
+    "seven_day": { "used_percentage": 56, "resets_in": 302000 },
+    "seven_day_fable": { "used_percentage": 65, "resets_in": 302000 }
+  }
+}

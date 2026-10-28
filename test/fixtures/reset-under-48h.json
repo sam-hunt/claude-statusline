@@ -1,0 +1,10 @@
+{
+  "session_id": "reset-under-48h",
+  "cwd": "/home/user/project",
+  "model": { "id": "claude-opus-5-5", "display_name": "Opus 5.5" },
+  "context_window": {
+    "context_window_size": 200000,
+    "current_usage": { "input_tokens": 1000, "output_tokens": 100, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 300000 }
+  },
+  "rate_limits": { "seven_day": { "used_percentage": 70, "resets_in": 165000 } }
+}

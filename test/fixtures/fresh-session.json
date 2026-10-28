@@ -1,0 +1,7 @@
+{
+  "session_id": "fresh-session",
+  "cwd": "/home/user/project",
+  "model": { "id": "claude-opus-5-5", "display_name": "Opus 5.5" },
+  "effort": { "level": "high" },
+  "context_window": { "context_window_size": 200000, "current_usage": null, "used_percentage": null }
+}
