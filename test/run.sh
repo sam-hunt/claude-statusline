@@ -92,6 +92,12 @@ out=$(materialise < "$fixtures/opus-on-pace.json" \
       | jq '.rate_limits.seven_day.used_percentage = 10' | KEEP_CACHE=1 render)
 expect shared-usage-highest-wins "$out" "week</> <green>15%</>"
 
+# A corrupt or empty cache file is skipped rather than blanking the line
+printf '{"seven_day":{"used_' > "$sessions/corrupt-session.json"
+: > "$sessions/empty-session.json"
+out=$(materialise < "$fixtures/fresh-session.json" | KEEP_CACHE=1 render)
+expect corrupt-cache-skipped "$out" "Opus 5.5" "week</> <green>15%</>"
+
 # --- Stop hook conversion ---
 
 converted=$("$root/fetch-usage.sh" --convert < "$fixtures/usage-response.json")

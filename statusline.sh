@@ -18,9 +18,16 @@ if [[ -n $session_id ]] && jq -e '.rate_limits | type == "object"' <<<"$input" >
   jq -c '.rate_limits' <<<"$input" > "$tmp" && mv "$tmp" "$cache_dir/$session_id.json"
 fi
 
+# Load the cached windows one file at a time, so a corrupt file is skipped rather than blanking the line.
+load_seen() {
+  local f
+  for f in "$cache_dir"/*.json; do [[ -f $f ]] && jq -c . "$f" 2>/dev/null; done
+  return 0
+}
+
 # Claude Code sets COLUMNS to the terminal width; the margin covers the columns it reserves (it truncates with … past that).
 jq -r \
-  --slurpfile seen <(cat "$cache_dir"/*.json 2>/dev/null) \
+  --slurpfile seen <(load_seen) \
   --arg userhost "$(whoami)@$(hostname -s)" \
   --argjson cols "${COLUMNS:-120}" \
   --argjson margin "${STATUSLINE_RIGHT_MARGIN:-5}" '
