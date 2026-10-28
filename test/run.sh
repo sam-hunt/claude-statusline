@@ -75,7 +75,7 @@ done
 
 # Right-aligned to COLUMNS minus the margin Claude Code reserves
 width=$(materialise < "$fixtures/opus-on-pace.json" | COLUMNS=150 "$root/statusline.sh" \
-        | sed -E $'s/\e\\[[0-9;]*m//g' | awk '{ print length($0) }')
+        | sed -E $'s/\e\\[[0-9;]*m//g' | tr -d '\n' | LC_ALL=C.UTF-8 wc -m)
 [[ $width == 145 ]] || fail "alignment: expected width 145 at COLUMNS=150" "got: $width"
 
 # --- Sharing usage across sessions ---
