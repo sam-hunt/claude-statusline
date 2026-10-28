@@ -10,15 +10,15 @@ The working directory is on the left; everything else is right-aligned.
 
 ## What it shows
 
-| Segment | Meaning | Colour |
-|---|---|---|
-| `Opus 5.5` | Current model | Purple for Fable, bright white otherwise |
-| `(high)` | Reasoning effort, if the model supports it | Red for `xhigh` and `max` |
-| `ctx 80k/1M` | Tokens in the context window / window size | Green under 150k, yellow 150k–250k, red from 250k |
-| `week 52%` | Weekly usage across all models | By pace (below) |
-| `fable 40%` | Weekly Fable usage | By pace (below) |
-| `resets 3d11h` | Time until the weekly reset; hours to one decimal under a day | Yellow under 48h, red under 24h |
-| `(50%)` | How far through the week you are | |
+| Segment        | Meaning                                                       | Colour                                            |
+| -------------- | ------------------------------------------------------------- | ------------------------------------------------- |
+| `Opus 5.5`     | Current model                                                 | Purple for Fable, bright white otherwise          |
+| `(high)`       | Reasoning effort, if the model supports it                    | Red for `xhigh` and `max`                         |
+| `ctx 80k/1M`   | Tokens in the context window / window size                    | Green under 150k, yellow 150k–250k, red from 250k |
+| `week 52%`     | Weekly usage across all models                                | By pace (below)                                   |
+| `fable 40%`    | Weekly Fable usage                                            | By pace (below)                                   |
+| `resets 3d11h` | Time until the weekly reset; hours to one decimal under a day | Yellow under 48h, red under 24h                   |
+| `(50%)`        | How far through the week you are                              |                                                   |
 
 **Pace colouring** compares weekly usage with progress through the week, with some leniency for irregular usage: green when usage is less than 5 points ahead, yellow from 5 to 10 points ahead, red when more than 10 points ahead. At `(50%)`, `week 54%` is green, `week 55%` yellow and `week 61%` red.
 
@@ -54,10 +54,10 @@ Claude Code only gives each session the usage figures from that session's own la
 
 ## Configuration
 
-| Environment variable | Default | Purpose |
-|---|---|---|
-| `STATUSLINE_RIGHT_MARGIN` | `5` | Columns kept free on the right. Increase if the end of the line is cut off with `…`. |
-| `CLAUDE_CONFIG_DIR` | `~/.claude` | Claude Code's config directory, if you've moved it |
+| Environment variable      | Default     | Purpose                                                                              |
+| ------------------------- | ----------- | ------------------------------------------------------------------------------------ |
+| `STATUSLINE_RIGHT_MARGIN` | `5`         | Columns kept free on the right. Increase if the end of the line is cut off with `…`. |
+| `CLAUDE_CONFIG_DIR`       | `~/.claude` | Claude Code's config directory, if you've moved it                                   |
 
 ## Troubleshooting
 
