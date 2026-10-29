@@ -67,6 +67,12 @@ out=$(materialise < "$fixtures/fresh-session.json" | render)
 expect fresh-session "$out" "<white>Opus 5.5</> (high)" "ctx <green>0</>/200k"
 expect_not fresh-session "$out" "week" "resets" "ctx -" "cold"
 
+# Home directory abbreviated to ~ (fixture cwd is /home/user/project), only on a path-component boundary
+for case in /home/user:'~/project' /home/user/:'~/project' /home/user/project:'~' /home/use:/home/user/project /:/home/user/project; do
+  out=$(materialise < "$fixtures/fresh-session.json" | HOME=${case%%:*} render)
+  expect "tilde-home=${case%%:*}" "$out" '</>:'"${case#*:}</>"
+done
+
 out=$(materialise < "$fixtures/fresh-session.json" | jq '.context_window.context_window_size = null' | render)
 expect fresh-session-no-size "$out" "ctx <green>0</>/?"
 

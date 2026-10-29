@@ -3,10 +3,10 @@
 A one-row [Claude Code status line](https://code.claude.com/docs/en/statusline) showing the active model, context usage and weekly plan usage, including the per-model Fable weekly limit, coloured by whether your usage is running ahead of the week.
 
 ```
-user@host:/home/user/project          Opus 5.5 (high) · ctx 80k/200k (32m) · week 52% · fable 40% · resets 3d11h (50%)
+user@host:~/project                   Opus 5.5 (high) · ctx 80k/200k (32m) · week 52% · fable 40% · resets 3d11h (50%)
 ```
 
-The working directory is on the left; everything else is right-aligned.
+The working directory is on the left, with your home directory shortened to `~`; everything else is right-aligned.
 
 ## What it shows
 

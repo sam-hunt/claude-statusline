@@ -45,6 +45,7 @@ fi
 jq -r \
   --slurpfile seen <(load_seen) \
   --arg userhost "$(whoami)@$(hostname -s)" \
+  --arg home "${HOME%/}" \
   --argjson cols "${COLUMNS:-120}" \
   --argjson margin "${STATUSLINE_RIGHT_MARGIN:-5}" \
   --argjson cache_expires "${cache_expires:-null}" '
@@ -55,6 +56,10 @@ jq -r \
     if . >= 1000000 then "\(. / 100000 | floor / 10)M"
     elif . >= 1000 then "\(. / 1000 | floor)k"
     else tostring end;
+  # Home directory shown as ~, as shells do; only on a whole path component, and not when HOME is /
+  def tilde:
+    if type == "string" and $home != "" and (. == $home or startswith($home + "/"))
+    then "~" + .[$home | length:] else . end;
   def visible_len: gsub("\u001b\\[[0-9;]*m"; "") | length;
   # Whole percent of the 7-day window elapsed, given its reset time
   def week_elapsed($resets_at):
@@ -72,7 +77,7 @@ jq -r \
   ((.model.id // "") + " " + (.model.display_name // "") | test("fable"; "i")) as $is_fable
   | (if $is_fable then esc("38;5;141") else esc("97") end) as $active
 
-  | "\(esc("01;32"))\($userhost)\(reset):\(esc("01;34"))\(.cwd)\(reset)" as $left
+  | "\(esc("01;32"))\($userhost)\(reset):\(esc("01;34"))\(.cwd | tilde)\(reset)" as $left
 
   # Model and effort
   | ( "\($active)\(.model.display_name // .model.id)\(reset)"
