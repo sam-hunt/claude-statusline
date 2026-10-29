@@ -97,10 +97,11 @@ jq -r \
         end
       end
     ) as $ttl
-  | ( if $used == null then "ctx -"
-      else "ctx \(tok_color($used))\($used | tok)\(reset)/\($c.context_window_size | tok)\($ttl)"
-      end
-    ) as $ctx
+  # Before the first request there is no usage yet, but the window size is already known.
+  # (A resumed session reports its usage straight away.)
+  | ($c.context_window_size | if . then tok else "?" end) as $size
+  | ($used // 0) as $used
+  | "ctx \(tok_color($used))\($used | tok)\(reset)/\($size)\($ttl)" as $ctx
 
   # Merge every session'"'"'s cached windows. Usage only rises within a window, so for each window
   # take the newest period (latest resets_at, allowing jitter) and the highest usage seen in it.

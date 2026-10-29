@@ -14,7 +14,7 @@ The working directory is on the left; everything else is right-aligned.
 | -------------- | ------------------------------------------------------------- | ------------------------------------------------- |
 | `Opus 5.5`     | Current model                                                 | Purple for Fable, bright white otherwise          |
 | `(high)`       | Reasoning effort, if the model supports it                    | Red for `xhigh` and `max`                         |
-| `ctx 80k/1M`   | Tokens in the context window / window size                    | Green under 150k, yellow 150k–250k, red from 250k |
+| `ctx 80k/1M`   | Tokens in the context window / window size (`0` before the first request) | Green under 150k, yellow 150k–250k, red from 250k |
 | `(32m)`        | Minutes until this session's prompt cache expires, or `cold`  | Yellow at 20m or less, red at 10m or less         |
 | `week 52%`     | Weekly usage across all models                                | By pace (below)                                   |
 | `fable 40%`    | Weekly Fable usage                                            | By pace (below)                                   |

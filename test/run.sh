@@ -64,8 +64,11 @@ expect_not() {  # expect_not <name> <output> <substring>...
 # --- Status line rendering ---
 
 out=$(materialise < "$fixtures/fresh-session.json" | render)
-expect fresh-session "$out" "<white>Opus 5.5</> (high)" "ctx -"
-expect_not fresh-session "$out" "week" "resets"
+expect fresh-session "$out" "<white>Opus 5.5</> (high)" "ctx <green>0</>/200k"
+expect_not fresh-session "$out" "week" "resets" "ctx -" "cold"
+
+out=$(materialise < "$fixtures/fresh-session.json" | jq '.context_window.context_window_size = null' | render)
+expect fresh-session-no-size "$out" "ctx <green>0</>/?"
 
 out=$(materialise < "$fixtures/opus-on-pace.json" | render)
 expect opus-on-pace "$out" \
