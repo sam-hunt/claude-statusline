@@ -96,14 +96,14 @@ done
 with_transcript() { jq --arg t "$(transcript "$@")" '.transcript_path = $t' "$fixtures/opus-on-pace.json"; }
 out=$(with_transcript 1680 | materialise | render)
 expect cache-ttl "$out" "ctx <green>80k</>/200k (32m) ·"
-for case in 2370:21m 2430:'<yellow>20m</>' 2970:'<yellow>11m</>' 3030:'<red>10m</>' 3570:'<red>1m</>' 3700:'<red>cold</>'; do
+for case in 2370:'(21m)' 2430:'<yellow>(20m)</>' 2970:'<yellow>(11m)</>' 3030:'<red>(10m)</>' 3570:'<red>(1m)</>' 3700:'<red>(cold)</>'; do
   out=$(with_transcript "${case%%:*}" | materialise | render)
-  expect "cache-ttl-${case%%:*}s-ago" "$out" "/200k (${case#*:})"
+  expect "cache-ttl-${case%%:*}s-ago" "$out" "/200k ${case#*:}"
 done
 out=$(with_transcript 100 5m | materialise | render)
-expect cache-ttl-5m "$out" "/200k (<red>4m</>)"
+expect cache-ttl-5m "$out" "/200k <red>(4m)</>"
 out=$(with_transcript 400 5m | materialise | render)
-expect cache-ttl-5m-cold "$out" "/200k (<red>cold</>)"
+expect cache-ttl-5m-cold "$out" "/200k <red>(cold)</>"
 out=$(materialise < "$fixtures/opus-on-pace.json" | jq '.transcript_path = "/nonexistent/transcript.jsonl"' | render)
 expect cache-ttl-no-transcript "$out" "/200k ·"
 expect_not cache-ttl-no-transcript "$out" "cold"

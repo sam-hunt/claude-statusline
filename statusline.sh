@@ -90,10 +90,10 @@ jq -r \
   # Coloured by the displayed minutes, so the colour agrees with the number.
   | ( if $cache_expires == null then ""
       else ($cache_expires - now | floor) as $s
-      | if $s <= 0 then " (\(esc("31"))cold\(reset))"
+      | if $s <= 0 then " \(esc("31"))(cold)\(reset)"
         else ($s / 60 | ceil) as $m
         | (if $m <= 10 then esc("31") elif $m <= 20 then esc("33") else "" end) as $ttl_color
-        | " (\($ttl_color)\($m)m\(if $ttl_color == "" then "" else reset end))"
+        | " \($ttl_color)(\($m)m)\(if $ttl_color == "" then "" else reset end)"
         end
       end
     ) as $ttl
