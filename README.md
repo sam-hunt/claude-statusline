@@ -3,7 +3,7 @@
 A one-row [Claude Code status line](https://code.claude.com/docs/en/statusline) showing the active model, context usage and weekly plan usage, including the per-model Fable weekly limit, coloured by whether your usage is running ahead of the week.
 
 ```
-user@host:/home/user/project                Opus 5.5 (high) · ctx 80k/200k · week 52% · fable 40% · resets 3d11h (50%)
+user@host:/home/user/project          Opus 5.5 (high) · ctx 80k/200k (32m) · week 52% · fable 40% · resets 3d11h (50%)
 ```
 
 The working directory is on the left; everything else is right-aligned.
@@ -15,12 +15,15 @@ The working directory is on the left; everything else is right-aligned.
 | `Opus 5.5`     | Current model                                                 | Purple for Fable, bright white otherwise          |
 | `(high)`       | Reasoning effort, if the model supports it                    | Red for `xhigh` and `max`                         |
 | `ctx 80k/1M`   | Tokens in the context window / window size                    | Green under 150k, yellow 150k–250k, red from 250k |
+| `(32m)`        | Minutes until this session's prompt cache expires, or `cold`  | Yellow at 20m or less, red at 10m or less         |
 | `week 52%`     | Weekly usage across all models                                | By pace (below)                                   |
 | `fable 40%`    | Weekly Fable usage                                            | By pace (below)                                   |
 | `resets 3d11h` | Time until the weekly reset; hours to one decimal under a day | Yellow under 48h, red under 24h                   |
 | `(50%)`        | How far through the week you are                              |                                                   |
 
 **Pace colouring** compares weekly usage with progress through the week, with some leniency for irregular usage: green when usage is less than 5 points ahead, yellow from 5 to 10 points ahead, red when more than 10 points ahead. At `(50%)`, `week 54%` is green, `week 55%` yellow and `week 61%` red.
+
+**Prompt cache TTL:** Claude Code caches the conversation so each turn only pays full price for what's new. The cache expires an hour after the session's last request (five minutes in some cases, such as usage overage), after which the next turn writes the whole context to the cache again. Coming back to a large context once it shows `cold` is the expensive case. The time is taken from the session transcript, so it is right even if the session uses the five-minute cache.
 
 **Which quota is in play:** the label of the weekly quota the current model mostly draws from is highlighted. On Fable, `fable` is purple and `week` is plain; on other models, `week` is bright white and `fable` is plain.
 
@@ -71,4 +74,4 @@ Claude Code only gives each session the usage figures from that session's own la
 ./test/run.sh
 ```
 
-The tests render the made-up sessions in `test/fixtures/` and check text and colours, pace thresholds, alignment, usage sharing between sessions, the usage conversion and install/uninstall. They use temporary directories and never touch your real settings or cache.
+The tests render the made-up sessions in `test/fixtures/` and check text and colours, pace thresholds, the prompt cache TTL, alignment, usage sharing between sessions, the usage conversion and install/uninstall. They use temporary directories and never touch your real settings or cache.

@@ -5,7 +5,7 @@ Bash + jq status line for Claude Code. See README.md for what it shows and how i
 ## Working on it
 
 - Run `./test/run.sh` after every change. It uses throwaway `XDG_CACHE_HOME` and `CLAUDE_CONFIG_DIR`, so it's safe to run anywhere.
-- Add or adjust a fixture in `test/fixtures/` for new behaviour. Fixtures give reset times as `resets_in` (seconds from now); the runner converts them to absolute `resets_at`. Pick `resets_in` values a little way from display boundaries (e.g. `302000`, not `302400`), because a second or two passes between building the input and rendering it.
+- Add or adjust a fixture in `test/fixtures/` for new behaviour. Fixtures give reset times as `resets_in` (seconds from now); the runner converts them to absolute `resets_at`; `transcript.jsonl` gives entry times as `ago` and `transcript()` in the runner rewrites them. Pick `resets_in` values a little way from display boundaries (e.g. `302000`, not `302400`), because a second or two passes between building the input and rendering it.
 - Fixtures must be made up. Never copy real session input, cache files or usage responses into the repo: they contain session IDs, local paths and usernames.
 - To see what Claude Code actually sends, read `~/.cache/claude-statusline/last-input.json`; for the usage endpoint, `oauth-usage-raw.json` in the same directory.
 
@@ -24,6 +24,7 @@ Bash + jq status line for Claude Code. See README.md for what it shows and how i
 - The status line runs locally and uses no API tokens; it re-runs on events and every `refreshInterval` seconds.
 - `rate_limits` in the status line input only has `five_hour` and `seven_day`, taken from that session's own last API response. That's why sessions share figures through the cache.
 - Per-model weekly limits (Fable) are only in the private `/api/oauth/usage` endpoint, under `limits[]` as `kind: "weekly_scoped"` with `scope.model.display_name`. The top-level `seven_day_*` keys for other models are null, and other top-level keys are internal codenames, so don't rely on them. `utilization`/`percent` are 0–100.
+- The prompt cache TTL comes from the transcript (`transcript_path`), not the status line input. Each main-chain (`isSidechain: false`) assistant entry has a `timestamp` and `message.usage.cache_creation` with `ephemeral_1h_input_tokens` / `ephemeral_5m_input_tokens`; each request writes to one of them. Main sessions often use 5m (e.g. in usage overage), so don't assume 1h. `<synthetic>` entries (interrupts) write nothing and are skipped. The entry is written when the response finishes, so the shown TTL can be up to a response's length optimistic.
 - Hook stdout and stderr aren't shown to Claude when the hook exits 0, which keeps credential handling out of the conversation. Keep it that way: the hook must stay silent and always exit 0.
 
 ## Design decisions (from the owner)

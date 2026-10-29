@@ -22,6 +22,24 @@ materialise() {
          then .resets_at = $now + .resets_in | del(.resets_in) else . end)'
 }
 
+# Writes the fixture transcript with its last request <ago> seconds ago (written with the 1h or 5m
+# TTL), turning each entry's "ago" into a timestamp like Claude Code writes, and prints its path.
+# Lines that aren't JSON are kept as they are.
+transcript() {  # transcript <ago> [1h|5m]
+  local path="$scratch/transcript-$1-${2:-1h}.jsonl"
+  jq -rR --argjson now "$(date +%s)" --argjson ago "$1" --arg ttl "${2:-1h}" '
+    . as $raw
+    | ( fromjson?
+        | if .uuid == "last-request" then .ago = $ago else . end
+        | if .uuid == "last-request" and $ttl == "5m"
+          then .message.usage.cache_creation |= {ephemeral_1h_input_tokens: 0, ephemeral_5m_input_tokens: .ephemeral_1h_input_tokens}
+          else . end
+        | .timestamp = ($now - .ago | todate | sub("Z$"; ".123Z")) | del(.ago)
+        | tojson
+      ) // $raw' < "$fixtures/transcript.jsonl" > "$path"
+  echo "$path"
+}
+
 # Colour codes -> readable tags, so expectations can assert colours.
 tags() {
   sed -E $'s/\e\\[31m/<red>/g; s/\e\\[33m/<yellow>/g; s/\e\\[32m/<green>/g; s/\e\\[97m/<white>/g;
@@ -72,6 +90,23 @@ for case in 54:green 55:yellow 60:yellow 61:red; do
         | jq --argjson p "$pct" '.rate_limits.seven_day.used_percentage = $p' | render)
   expect "pace-$pct" "$out" "week</> <$colour>$pct%</>"
 done
+
+# Prompt cache TTL: minutes left after the context, from the last main-chain request in the transcript.
+# Subagent, synthetic and non-JSON lines after it are ignored. Plain above 20m, yellow to 11m, red from 10m.
+with_transcript() { jq --arg t "$(transcript "$@")" '.transcript_path = $t' "$fixtures/opus-on-pace.json"; }
+out=$(with_transcript 1680 | materialise | render)
+expect cache-ttl "$out" "ctx <green>80k</>/200k (32m) ·"
+for case in 2370:21m 2430:'<yellow>20m</>' 2970:'<yellow>11m</>' 3030:'<red>10m</>' 3570:'<red>1m</>' 3700:'<red>cold</>'; do
+  out=$(with_transcript "${case%%:*}" | materialise | render)
+  expect "cache-ttl-${case%%:*}s-ago" "$out" "/200k (${case#*:})"
+done
+out=$(with_transcript 100 5m | materialise | render)
+expect cache-ttl-5m "$out" "/200k (<red>4m</>)"
+out=$(with_transcript 400 5m | materialise | render)
+expect cache-ttl-5m-cold "$out" "/200k (<red>cold</>)"
+out=$(materialise < "$fixtures/opus-on-pace.json" | jq '.transcript_path = "/nonexistent/transcript.jsonl"' | render)
+expect cache-ttl-no-transcript "$out" "/200k ·"
+expect_not cache-ttl-no-transcript "$out" "cold"
 
 # Right-aligned to COLUMNS minus the margin Claude Code reserves
 width=$(materialise < "$fixtures/opus-on-pace.json" | COLUMNS=150 "$root/statusline.sh" \

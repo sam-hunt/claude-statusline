@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Claude Code status line, one row:
-#   user@host:cwd  (left)                 model (effort) · ctx · weekly usage · reset  (right)
+#   user@host:cwd  (left)                 model (effort) · ctx cache-ttl · weekly usage · reset  (right)
 input=$(cat)
 cache_root="${XDG_CACHE_HOME:-$HOME/.cache}/claude-statusline"
 cache_dir="$cache_root/sessions"
@@ -25,12 +25,29 @@ load_seen() {
   return 0
 }
 
+# When this session's prompt cache expires: its last main-chain API request plus the TTL that request
+# wrote with (1h normally, 5m e.g. in usage overage). Every request restarts the TTL. Subagents have their
+# own caches, and synthetic entries made no request, so neither counts.
+cache_expires=null
+transcript=$(jq -r '.transcript_path // empty' <<<"$input")
+if [[ -f $transcript ]]; then
+  cache_expires=$(tail -n 200 "$transcript" | jq -nR '
+    last(inputs | fromjson? | objects
+      | select(.type == "assistant" and .isSidechain != true)
+      | (.message.usage.cache_creation // {}) as $w
+      | select(($w.ephemeral_1h_input_tokens // 0) + ($w.ephemeral_5m_input_tokens // 0) > 0)
+      | (.timestamp | sub("\\.[0-9]+"; "") | fromdateiso8601)
+        + (if ($w.ephemeral_5m_input_tokens // 0) > 0 then 300 else 3600 end))' 2>/dev/null) \
+    || cache_expires=null
+fi
+
 # Claude Code sets COLUMNS to the terminal width; the margin covers the columns it reserves (it truncates with … past that).
 jq -r \
   --slurpfile seen <(load_seen) \
   --arg userhost "$(whoami)@$(hostname -s)" \
   --argjson cols "${COLUMNS:-120}" \
-  --argjson margin "${STATUSLINE_RIGHT_MARGIN:-5}" '
+  --argjson margin "${STATUSLINE_RIGHT_MARGIN:-5}" \
+  --argjson cache_expires "${cache_expires:-null}" '
   def esc($c): "\u001b[\($c)m";
   def reset: esc("0");
   def tok_color($t): if $t >= 250000 then esc("31") elif $t >= 150000 then esc("33") else esc("32") end;
@@ -69,8 +86,19 @@ jq -r \
   | ($c.current_usage
       | if . then .input_tokens + .cache_creation_input_tokens + .cache_read_input_tokens
         else null end) as $used
+  # Minutes left on the prompt cache, rounded up so it reads 1m until it is actually cold.
+  # Coloured by the displayed minutes, so the colour agrees with the number.
+  | ( if $cache_expires == null then ""
+      else ($cache_expires - now | floor) as $s
+      | if $s <= 0 then " (\(esc("31"))cold\(reset))"
+        else ($s / 60 | ceil) as $m
+        | (if $m <= 10 then esc("31") elif $m <= 20 then esc("33") else "" end) as $ttl_color
+        | " (\($ttl_color)\($m)m\(if $ttl_color == "" then "" else reset end))"
+        end
+      end
+    ) as $ttl
   | ( if $used == null then "ctx -"
-      else "ctx \(tok_color($used))\($used | tok)\(reset)/\($c.context_window_size | tok)"
+      else "ctx \(tok_color($used))\($used | tok)\(reset)/\($c.context_window_size | tok)\($ttl)"
       end
     ) as $ctx
 
